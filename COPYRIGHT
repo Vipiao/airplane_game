@@ -1,0 +1,12 @@
+Copyright (c) 2026 Markus Fjellheim. All rights reserved.
+
+This source is published for review. No permission is granted to use,
+copy, modify or distribute it.
+
+Third-party components are covered by their own licences and are not
+affected by the above. The vendored libraries under external/ (glad, glm,
+stb_image, AudioFile and the OpenAL headers) keep their own licences.
+Sound effects under media/sound_effects/ are by Michel Baradari
+(apollo-music.de), licensed CC BY 3.0 and hosted on opengameart.org; the
+attribution is recorded in media/sound_effects/info.txt. The 3D models and
+their textures under media/models/ are the author's own work.

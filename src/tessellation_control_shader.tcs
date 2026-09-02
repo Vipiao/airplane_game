@@ -1,0 +1,127 @@
+#version 410 core
+//#extension GL_ARB_gpu_shader_fp64 : require
+
+layout (vertices = 1) out;
+
+in vec3 vertPos[];
+in float vertRadius[];
+in float vertTotalRadius[];
+in float vertLevels[];
+
+out patch vec3 tcsPos[4];
+
+out patch float tcsRadius;
+out patch float tcsTotalRadius;
+out patch float tcsTessExpLevel;
+out patch vec3 tcsDebug;
+
+uniform mat4 view;
+uniform mat4 proj;
+uniform vec3 camPos;
+uniform vec3 resolutionCenter;
+uniform vec3 camForward;
+uniform vec3 camRight;
+uniform vec3 camPosOffset;
+uniform float fov;
+uniform uint time;
+uniform uint offsetScale;
+uniform int level;
+
+// --- Procedural generation map function will be replaced FROM here ---
+vec3 map(vec3 pos, vec3 offset){
+  return pos;
+}
+// --- Procedural generation map function will be replaced TO here ---
+
+void main()
+{
+  //int ll = int(log2(0.5 +
+  //  10. * (camPos.z - map(camPos, camPosOffset, 1).z)
+  //));
+  float levelExp = pow(2, level);
+  tcsRadius = vertRadius[0] * levelExp;
+  tcsTotalRadius = vertTotalRadius[0] * levelExp;
+  vec3 pos[4] = vec3[](
+    vertPos[0] * levelExp,
+    vertPos[1] * levelExp,
+    vertPos[2] * levelExp,
+    vertPos[3] * levelExp
+  );
+
+  vec3 roundedMove             = vec3(round(vec2(resolutionCenter.xy) / tcsRadius / 2.) * tcsRadius * 2., 0.);
+  vec3 roundedMoveSmallerLevel = vec3(round(vec2(resolutionCenter.xy) / tcsRadius / 1.) * tcsRadius * 1., 0.);
+  vec3 diff = roundedMoveSmallerLevel - roundedMove;
+  
+  vec3 offset = vec3(0.);
+  vec3 centerLoc = (pos[0] + pos[1] + pos[2] + pos[3]) / 4.;
+  
+  float ee = 0.0000001;
+  if (vertLevels[0] > 0.0){ // Is not the inner most level.
+    roundedMove += diff;
+    if (diff.x > ee && centerLoc.x + tcsRadius * 1. > tcsTotalRadius){
+      offset.x -= 2. * tcsTotalRadius;
+    } else if (diff.x < -ee && centerLoc.x - tcsRadius * 1. < -tcsTotalRadius){
+      offset.x += 2. * tcsTotalRadius;
+    }
+    if (diff.y > ee && centerLoc.y + tcsRadius * 1. > tcsTotalRadius){
+      offset.y -= 2. * tcsTotalRadius;
+    } else if (diff.y < -ee && centerLoc.y - tcsRadius * 1. < -tcsTotalRadius){
+      offset.y += 2. * tcsTotalRadius;
+    }
+  }
+
+  tcsPos[0] = pos[0] + offset + roundedMove;
+  tcsPos[1] = pos[1] + offset + roundedMove;
+  tcsPos[2] = pos[2] + offset + roundedMove;
+  tcsPos[3] = pos[3] + offset + roundedMove;
+
+  float resolution = 1.;
+  
+  #define LEFT 0
+  #define BOT 1
+  #define RIGHT 2
+  #define TOP 3
+  vec3 edgeCenters[4] = vec3[](
+    (tcsPos[0] + tcsPos[3])/2., // Left.
+    (tcsPos[0] + tcsPos[1])/2., // Bot.
+    (tcsPos[1] + tcsPos[2])/2., // Right.
+    (tcsPos[2] + tcsPos[3])/2. // Top.
+  );
+  vec3 center = (edgeCenters[BOT] + edgeCenters[TOP]) / 2.;
+  center = map(center, camPosOffset, 3);
+
+  for(int ii=0; ii<4; ii++){
+    //float ss = (sin(time*0.03)*0.5+0.5);
+    float rr = 2.*tcsRadius;// * ss;
+    vec4 relPosMax = proj * (view * vec4(center, 1.0) + vec4(rr,rr,0,0));
+    vec4 relPosMin = proj * (view * vec4(center, 1.0) - vec4(rr,rr,rr,0));
+    relPosMax /= relPosMax.w;
+    relPosMin /= relPosMin.w;
+    if(
+      relPosMax.x < -1. && relPosMin.x < -1. ||
+      relPosMax.x >  1. && relPosMin.x >  1. ||
+      relPosMax.y < -1. && relPosMin.y < -1. ||
+      relPosMax.y >  1. && relPosMin.y >  1. ||
+      relPosMax.z <  0. && relPosMin.z <  0.
+    ){
+      //gl_TessLevelOuter[ii] = 1.;
+    } else {
+      //gl_TessLevelOuter[ii] = 1.;
+    }
+  }
+  float level = 1.;
+  gl_TessLevelOuter[0] = level;
+  gl_TessLevelOuter[1] = level;
+  gl_TessLevelOuter[2] = level;
+  gl_TessLevelOuter[3] = level;
+  gl_TessLevelInner[0] = level;
+  gl_TessLevelInner[1] = level;
+
+  //float factor = 10.0;
+  //gl_TessLevelOuter[0] = round(resolution + factor * map(left, camPosOffset, 1).z);
+  //gl_TessLevelOuter[1] = round(resolution + factor * map(bot, camPosOffset, 1).z);
+  //gl_TessLevelOuter[2] = round(resolution + factor * map(right, camPosOffset, 1).z);
+  //gl_TessLevelOuter[3] = round(resolution + factor * map(top, camPosOffset, 1).z);
+  //gl_TessLevelInner[0] = round(resolution + factor * map(center, camPosOffset, 1).z);
+  //gl_TessLevelInner[1] = round(resolution + factor * map(center, camPosOffset, 1).z);
+}

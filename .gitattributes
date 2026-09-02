@@ -1,0 +1,24 @@
+# Shader sources are parsed line by line at runtime: the procedural-generation
+# map function is injected by matching a marker comment against a whole line, so
+# a checkout that introduces CRLF makes the marker fail to match and the surface
+# shader stops compiling. Pin them to LF on every platform.
+*.glsl  text eol=lf
+*.vert  text eol=lf
+*.frag  text eol=lf
+*.tcs   text eol=lf
+*.tes   text eol=lf
+
+# C++ sources, likewise normalized so diffs stay clean across platforms.
+*.cpp   text eol=lf
+*.h     text eol=lf
+*.txt   text eol=lf
+*.md    text eol=lf
+*.json  text eol=lf
+
+# Assets are binary; never translate them.
+*.png   binary
+*.jpg   binary
+*.wav   binary
+*.dat   binary
+*.obj   binary
+*.mtl   text eol=lf

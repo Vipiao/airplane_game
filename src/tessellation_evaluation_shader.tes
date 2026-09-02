@@ -1,0 +1,43 @@
+#version 410 core
+//#extension GL_ARB_gpu_shader_fp64 : require
+
+//layout(triangles, equal_spacing, ccw) in;
+layout(quads, equal_spacing, ccw) in;
+//layout(quads, fractional_even_spacing, ccw) in;
+//layout(quads, fractional_odd_spacing, ccw) in;
+
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 proj;
+uniform vec3 camPos;
+uniform vec3 camPosOffset;
+uniform uint time;
+uniform uint offsetScale;
+
+in patch vec3 tcsPos[4];
+in patch float tcsRadius;
+in patch float tcsTotalRadius;
+in patch float tcsTessExpLevel;
+in patch vec3 tcsDebug;
+
+out vec3 tePos;
+out vec3 teDebug;
+
+// --- Procedural generation map function will be replaced FROM here ---
+vec3 map(vec3 pos, vec3 offset){
+  return pos;
+}
+// --- Procedural generation map function will be replaced TO here ---
+
+void main()
+{
+  teDebug = tcsDebug;
+  tePos = mix(
+    mix(tcsPos[0], tcsPos[1], gl_TessCoord.x),
+    mix(tcsPos[3], tcsPos[2], gl_TessCoord.x),
+    gl_TessCoord.y
+  );
+  tePos = map(tePos, camPosOffset, 3);
+
+  gl_Position = proj * view * vec4(tePos, 1.0);
+}
