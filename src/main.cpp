@@ -9,10 +9,6 @@
 #include <AL/al.h>
 #include <AudioFile/AudioFile.h>
 
-//#include <Windows.h>
-//#include "MMSystem.h"
-
-//#include "olcNoiseMaker.h"
 #include "ShaderProgram.h"
 #include "Surface.h"
 #include "GraphicsEngine.h"
@@ -24,11 +20,6 @@
 #include <iostream>
 #include <vector>
 
-
-//double MakeNoise(double dTime) {
-//   double dOutput = sin(110.0 * 2.0 * 3.14159 * dTime);
-//   return dOutput * 0.5; // Master Volume
-//}
 
 int main(int /*argc*/, char* /*argv[]*/) {
 
