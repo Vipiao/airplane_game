@@ -8,6 +8,7 @@
 
 #include "ParticleEffectInstance.h"
 #include "RigidBody.h"
+#include "PhysicsUnits.h"
 
 class MovingParticleEffect {
 protected:
@@ -18,7 +19,7 @@ public:
    void updateMeshPositions();
    RigidBody* m_rigidBody{ nullptr };
    ParticleEffectInstance* m_particleEffectInstance{ nullptr };
-   uint64_t m_lifeTime{ 100 };
+   uint64_t m_lifeTime{ (uint64_t)PhysicsUnits::ticks(5. / 6.) };
    uint64_t m_spawnTime{ 0 };
    double airResistanceFactor{ 0. };
 };

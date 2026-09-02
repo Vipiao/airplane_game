@@ -47,6 +47,7 @@ public:
    GraphicsEngine& operator= (const GraphicsEngine&) = delete;
 
    void setSwapInterval(int swapInterval);
+   int getRefreshRate();
    void setCallbackObject(GraphicsEngineCallback* graphicsEngineCallback);
    glm::dmat4 createModel(glm::dvec3 scale, glm::dquat orientation, glm::dvec3 position);
    //void handleMouse(uint64_t frameNum);

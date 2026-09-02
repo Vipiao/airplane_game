@@ -15,6 +15,7 @@ surface and the CPU-side collision queries.
 | Rendering | Modern OpenGL 4.4 core, tessellation control/evaluation stage for the planet surface, custom particle system for engine plasma and explosions |
 | World | Layered domain-warped value noise, generated once into a texture and shared by the shaders and the CPU |
 | Physics | Rigid bodies with quaternion orientation, capped torque control, collision detection against the terrain and between vehicles |
+| Timing | The simulation runs on a fixed 120 Hz tick. Tuning is written in SI units and converted to tick units at the point of definition (`src/PhysicsUnits.h`), so the configured behaviour stays fixed in real-world terms if the tick rate is retuned |
 | Audio | OpenAL, with WAV decoding through AudioFile |
 | Precision | Double precision throughout (`dvec3`, `dquat`) so the camera stays stable far from the origin |
 

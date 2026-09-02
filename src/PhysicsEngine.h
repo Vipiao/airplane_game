@@ -10,6 +10,7 @@
 
 #include "RigidBody.h"
 #include "GlobalConstants.h"
+#include "PhysicsUnits.h"
 
 //class Collider;
 //class CollisionBox;
@@ -99,7 +100,7 @@ public:
    void removeRigidBody(RigidBody* rigidBody);
 
    //double m_gravity{ 0.016384 };
-   double m_gravity{ 0.00047309027 * 30. };
+   double m_gravity{ PhysicsUnits::metersPerSecondSquared(204.37499664) };
 
    //std::vector<CollisionBox::Edge*> m_edgesX{};
    //std::vector<CollisionBox::Edge*> m_edgesY{};

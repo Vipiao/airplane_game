@@ -9,6 +9,7 @@
 #include "Mesh.h"
 #include "RigidBody.h"
 #include "GlobalConstants.h"
+#include "PhysicsUnits.h"
 
 class Projectile {
 protected:
@@ -21,7 +22,7 @@ public:
    RigidBody* m_rigidBody{ nullptr };
    Mesh* m_mesh{ nullptr };
    uint64_t m_spawnTime{0};
-   uint64_t m_lifeTime{ 144 * 3 };
+   uint64_t m_lifeTime{ (uint64_t)PhysicsUnits::ticks(3.6) };
    int m_owner{-1};
    double m_damage{ 0.3 };
    // Collision.

@@ -2,6 +2,7 @@
 
 #include "GameEngine.h"
 #include "KeyboardHandler.h"
+#include "PhysicsUnits.h"
 
 class GameLogic : public GameEngineCallback {
 protected:
@@ -26,7 +27,7 @@ public:
    Planet* m_planet{ nullptr };
    glm::dvec3 m_followPos{ 0,0,0 };
    glm::dvec3 m_followUp{ 0,0,1 };
-   double m_camSpeed{ 0.01 };
+   double m_camSpeed{};
    int m_playerVehicleId{ -2 };
    SpaceShip* m_playerVehicle{ nullptr };
    Model* m_enemyMarkerModel{ nullptr };

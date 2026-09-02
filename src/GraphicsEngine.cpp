@@ -3,6 +3,7 @@
 #include "Surface.h"
 #include "GlobalConstants.h"
 #include "AssimpLoader.h"
+#include "PhysicsUnits.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -71,6 +72,13 @@ GraphicsEngine::GraphicsEngine() {
 #else
    glfwSwapInterval(1);
 #endif
+
+   int refreshRate{ getRefreshRate() };
+   if (refreshRate > 0) {
+      PhysicsUnits::setTickRate((double)refreshRate);
+   }
+   std::cout << "Tick rate: " << PhysicsUnits::s_tickRateHz << " Hz" << std::endl;
+
    glEnable(GL_DEPTH_TEST);
    glEnable(GL_CULL_FACE);
    //glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
@@ -115,6 +123,18 @@ void GraphicsEngine::setSwapInterval(int swapInterval) {
    glfwSwapInterval(swapInterval);
 }
 
+int GraphicsEngine::getRefreshRate() {
+   GLFWmonitor* monitor{ glfwGetPrimaryMonitor() };
+   if (monitor == nullptr) {
+      return 0;
+   }
+   const GLFWvidmode* videoMode{ glfwGetVideoMode(monitor) };
+   if (videoMode == nullptr) {
+      return 0;
+   }
+   return videoMode->refreshRate;
+}
+
 void GraphicsEngine::setCallbackObject(GraphicsEngineCallback* graphicsEngineCallback) {
    m_graphicsEngineCallback = graphicsEngineCallback;
 }
@@ -127,7 +147,7 @@ glm::dmat4 GraphicsEngine::createModel(glm::dvec3 scale, glm::dquat orientation,
 }
 
 void GraphicsEngine::renderLoop() {
-   const std::chrono::duration<double> targetFrameDuration(1.0 / 120.0); // Target 60 FPS
+   const std::chrono::duration<double> targetFrameDuration(1. / PhysicsUnits::s_tickRateHz);
    auto nextFrameTime = std::chrono::high_resolution_clock::now();
 
    while (!glfwWindowShouldClose(m_window)) {

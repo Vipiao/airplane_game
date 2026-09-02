@@ -11,6 +11,7 @@
 #include <glm/gtx/quaternion.hpp>
 
 #include "ParticleEffect.h"
+#include "PhysicsUnits.h"
 
 class ParticleEffectInstance {
 private:
@@ -25,6 +26,6 @@ public:
    int m_numParticles{ 1 };
    uint64_t m_spawnTime{};
    bool m_isVisible{ true };
-   double m_animationPace{ 1. };
+   double m_animationPace{ PhysicsUnits::perSecond(120.) };
 };
 

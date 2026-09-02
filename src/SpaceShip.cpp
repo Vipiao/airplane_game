@@ -135,7 +135,7 @@ void SpaceShip::updateMeshPositions(uint64_t frameNum, glm::dvec3 camPos, double
       m_plasmaEffectL->m_scale.x *
       glm::pow(glm::abs(m_thrustMultiplier), 2.5)
    };
-   double newL{ glm::mix(current, target, 0.16) };
+   double newL{ glm::mix(current, target, PhysicsUnits::blendHalfLife(0.033129419504020347)) };
    m_plasmaEffectR->m_scale.y = newL;
    m_plasmaEffectL->m_scale.y = newL;
 }

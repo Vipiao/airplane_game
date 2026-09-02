@@ -6,11 +6,14 @@
 
 #include "Hash.h"
 #include "GlobalConstants.h"
+#include "PhysicsUnits.h"
 
 
 GameLogic::GameLogic() {
    m_gameEngine = new GameEngine();
    m_gameEngine->m_gameEngineCallbacks.push_back(this);
+
+   m_camSpeed = PhysicsUnits::metersPerSecond(1.2);
 
    m_keyBoardHandler = new KeyboardHandler(m_gameEngine->m_graphicsEngine.m_window);
 
@@ -203,7 +206,7 @@ void GameLogic::handleGameEvents(uint64_t frameNum) {
    if (m_gameState == PLAY) {
       double prob{ Hash::pcgUnit(frameNum) };
       if (
-         prob <= 0.005 && m_playerVehicle != nullptr &&
+         prob <= PhysicsUnits::perSecond(0.6) && m_playerVehicle != nullptr &&
          m_gameEngine->m_spaceShips.size() < m_maxSpaceships &&
          m_totalSpaceShips > 0
          ) {
@@ -222,7 +225,8 @@ void GameLogic::handleGameEvents(uint64_t frameNum) {
          //spawnPos = glm::mix(m_playerVehicle->m_rigidBody->m_pos, spawnPos, 0.2);
          SpaceShip* tt{ m_gameEngine->createSpaceShip(spawnPos) };
          tt;
-         tt->m_rigidBody->m_vel += (Hash::pcgUnit3(frameNum) * 0.5 - 0.5) * 0.001;
+         tt->m_rigidBody->m_vel +=
+            (Hash::pcgUnit3(frameNum) * 0.5 - 0.5) * PhysicsUnits::metersPerSecond(0.12);
       }
    }
 
@@ -239,7 +243,9 @@ void GameLogic::handleGameEvents(uint64_t frameNum) {
          if (prevHealth < 0.5) {
             healRate *= 0.1;
          }
-         sp->m_health = glm::mix(sp->m_health, sp->m_maxHealth, 0.0002);
+         sp->m_health = glm::mix(
+            sp->m_health, sp->m_maxHealth, PhysicsUnits::blendHalfLife(28.87824431379865)
+         );
          double nextHealth{ sp->m_health / sp->m_maxHealth };
          if (prevHealth < 0.5 && nextHealth >= 0.5) {
             sp->m_meshCurrent->m_isVisible = false;
@@ -274,7 +280,7 @@ void GameLogic::joystickControlSpaceShip(SpaceShip* spaceShip, glm::dvec2 joysti
    // Control space ship.
    glm::dvec3 torqueLocal{ 0,0,0 };
    // Mouse.
-   double rotationFactorMouse{ 0.001 };
+   double rotationFactorMouse{ PhysicsUnits::radiansPerSecondSquared(14.4) };
    torqueLocal.x = joystick.y * rotationFactorMouse;
    torqueLocal.z = -joystick.x * rotationFactorMouse * 5.0;
    torqueLocal.y = joystick.x * rotationFactorMouse * 5.;
@@ -332,14 +338,14 @@ void GameLogic::targetPosition(SpaceShip* spaceShip, glm::dvec3 position) {
    } else {
       joystick.x = -glm::sqrt(-joystick.x);
    }
-   joystick.x += -glm::dot(angVel, forward) * 16.;
+   joystick.x += -glm::dot(angVel, forward) * PhysicsUnits::seconds(2. / 15.);
 
    if (joystick.y > 0.) {
       joystick.y = glm::sqrt(joystick.y);
    } else {
       joystick.y = -glm::sqrt(-joystick.y);
    }
-   joystick.y += -glm::dot(angVel, right) * 16.;
+   joystick.y += -glm::dot(angVel, right) * PhysicsUnits::seconds(2. / 15.);
 
    joystick *= 4096.*4096.;
 
@@ -370,9 +376,9 @@ void GameLogic::handleAI(uint64_t frameNum) {
          }
          double prob{ Hash::pcgUnit(ii, frameNum) };
          if (sp->m_aiState == SpaceShip::CHACE) {
-            if (prob <= 1. / 144. / 10.) {
+            if (prob <= PhysicsUnits::perSecond(1. / 12.)) {
                sp->m_aiState = SpaceShip::ESCAPE;
-            } else if (prob <= 1. / 144. / 2.) {
+            } else if (prob <= PhysicsUnits::perSecond(5. / 12.)) {
                sp->m_aiState = SpaceShip::SHOOT;
             }
          } else if (sp->m_aiState == SpaceShip::SHOOT) {
@@ -383,14 +389,14 @@ void GameLogic::handleAI(uint64_t frameNum) {
                sp->m_aiState = SpaceShip::CHACE;
             }
 #endif // DEBUG_AI
-            if (prob <= 1. / 144. / 10.) {
+            if (prob <= PhysicsUnits::perSecond(1. / 12.)) {
                sp->m_aiState = SpaceShip::ESCAPE;
-            } else if (prob <= 1. / 144. / 1.0) {
+            } else if (prob <= PhysicsUnits::perSecond(5. / 6.)) {
                sp->m_aiState = SpaceShip::CHACE;
             }
          } else if (sp->m_aiState == SpaceShip::ESCAPE) {
             double distance{ glm::length(sp->m_rigidBody->m_pos - tSpaceShip->m_rigidBody->m_pos) };
-            if (prob <= 1. / 144. / 10. || distance > 20000.) {
+            if (prob <= PhysicsUnits::perSecond(1. / 12.) || distance > 20000.) {
                sp->m_aiState = SpaceShip::CHACE;
             }
          }
@@ -400,7 +406,9 @@ void GameLogic::handleAI(uint64_t frameNum) {
          glm::dvec3 targetPos{}; bool canHit{}; double time{};
          //double reduceFactor{ 0.9 };// Makes spaceShips shoot a bit ahead due to enemy ship...
          // ...usually accelerating.
-         double scaleFactor{ 1. + Hash::pcgUnit(frameNum / (144*2)) * 0.2 };
+         double scaleFactor{
+            1. + Hash::pcgUnit(frameNum / (uint64_t)PhysicsUnits::ticks(2.4)) * 0.2
+         };
          GameLogic::trajectoryInterceptionWithGravity(
             sp, tSpaceShip, scaleFactor, &targetPos, &canHit, &time
          );
@@ -427,7 +435,7 @@ void GameLogic::handleAI(uint64_t frameNum) {
 
          double minHeight{ 999999999. };
          int resolution{ 10 };
-         double maxDistance{ 800. * (0.5 + glm::abs(forward.z) * 0.5)};
+         double maxDistance{ PhysicsUnits::seconds(20. / 3.) * (0.5 + glm::abs(forward.z) * 0.5)};
          glm::dvec3 furthestPoint{};
          double skipHeight{ maxDistance * glm::length(sp->m_rigidBody->m_vel) };
          for (size_t jj = 0; jj < resolution+1; jj++) {
@@ -523,7 +531,10 @@ void GameLogic::handleUI(uint64_t /*frameNum*/) {
 
       // Control camera.
       double offsetFactor{ 1. / (glm::pow(glm::abs(glm::dot(forward, angVel)), 2.) * 2048. + 1.) };
-      m_followPos = glm::mix(m_followPos, rigidBody->m_pos + up * 5. * offsetFactor, 0.06);
+      m_followPos = glm::mix(
+         m_followPos, rigidBody->m_pos + up * 5. * offsetFactor,
+         PhysicsUnits::blendHalfLife(0.093352546530176397)
+      );
       //double shipSpeed{ glm::dot(m_spaceShip->m_rigidBody->m_vel, forward) };
       //((s-t)*f-d)*f+t
       double distanceToShip{ 100. };
@@ -537,7 +548,9 @@ void GameLogic::handleUI(uint64_t /*frameNum*/) {
       lookAtPos += forward * 512.;
       glm::dvec3 direction{ lookAtPos - graphicsEngine->m_camPos };
       direction = direction / glm::length(direction);
-      m_followUp = glm::normalize(glm::mix(m_followUp, up, 0.03));
+      m_followUp = glm::normalize(
+         glm::mix(m_followUp, up, PhysicsUnits::blendHalfLife(0.18963810885644522))
+      );
       graphicsEngine->m_camOri =
          glm::quatLookAt(direction, glm::dvec3{ 0,0,1 } + m_followUp * 4.0);
       const glm::dquat offset{ glm::angleAxis(glm::radians(-90.), glm::dvec3{ 1,0,0 }) };
@@ -776,13 +789,14 @@ void GameLogic::handleInput(uint64_t /*frameNum*/) {
          graphicsEngine->m_camPos += graphicsEngine->m_camOri * glm::dvec3{ 0,0,-1 } * m_camSpeed;
 
       // Accelerate.
+      double camSpeedHalfLife{ PhysicsUnits::halfLife(0.11838915902408702) };
       if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
-         m_camSpeed *= 1.05;
+         m_camSpeed /= camSpeedHalfLife;
       if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
-         m_camSpeed /= 1.05;
+         m_camSpeed *= camSpeedHalfLife;
 
       // Rotate.
-      double rotSpeed{ 0.010 * graphicsEngine->m_fieldOfView };
+      double rotSpeed{ PhysicsUnits::radiansPerSecond(1.2) * graphicsEngine->m_fieldOfView };
       glm::dvec3 rotation{};
       // Keyboard.
       if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
@@ -794,9 +808,9 @@ void GameLogic::handleInput(uint64_t /*frameNum*/) {
       if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
          rotation += glm::dvec3{ 0,0,rotSpeed };
       if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-         rotation += glm::dvec3{ 0,-0.010,0 };
+         rotation += glm::dvec3{ 0,-PhysicsUnits::radiansPerSecond(1.2),0 };
       if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-         rotation += glm::dvec3{ 0,0.010,0 };
+         rotation += glm::dvec3{ 0,PhysicsUnits::radiansPerSecond(1.2),0 };
       // Mouse.
       if (graphicsEngine->m_mouseHandler->getMouseLock()) {
          double mouseSensitivity{0.002};
@@ -850,10 +864,14 @@ void GameLogic::handleInput(uint64_t /*frameNum*/) {
          if (m_keyBoardHandler->m_d.m_isDown)
             torqueLocal.y += m_playerVehicle->m_rollMax;
          if (torqueLocal.y == 0.) {
-            torqueLocal.y += -glm::dot(rigidBody->getAngularVel(), forward) * 0.01;
+            torqueLocal.y +=
+               -glm::dot(rigidBody->getAngularVel(), forward) * PhysicsUnits::perSecond(1.2);
          }
          // -Mouse.
-         double rotationFactorMouse{ 0.00005 * graphicsEngine->m_fieldOfView / 1.5707963267948966 };
+         double rotationFactorMouse{
+            PhysicsUnits::radiansPerSecond(0.006) *
+            graphicsEngine->m_fieldOfView / 1.5707963267948966
+         };
          glm::dvec2 joyStick{ mouseHandler->m_mouseMovement * rotationFactorMouse };
          if (
             m_keyBoardHandler->m_w.m_isDown && joyStick.y > 0. ||
@@ -903,11 +921,11 @@ void GameLogic::handleInput(uint64_t /*frameNum*/) {
    }
 
    // Zoom level.
-   double fovZoomSpeed{ 0.01 };
+   double fovZoomFactor{ PhysicsUnits::halfLife(0.5747296994710671) };
    if (m_keyBoardHandler->m_f.m_isDown)
-      graphicsEngine->m_fieldOfView *= (1. - fovZoomSpeed);
+      graphicsEngine->m_fieldOfView *= fovZoomFactor;
    if (m_keyBoardHandler->m_g.m_isDown)
-      graphicsEngine->m_fieldOfView /= (1. - fovZoomSpeed);
+      graphicsEngine->m_fieldOfView /= fovZoomFactor;
 
    // Triangle mode.
    if (m_keyBoardHandler->m_t.justPressed())

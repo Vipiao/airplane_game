@@ -10,6 +10,7 @@
 #include "RigidBody.h"
 #include "ParticleEffectInstance.h"
 #include "GlobalConstants.h"
+#include "PhysicsUnits.h"
 
 class SpaceShipPart {
 protected:
@@ -67,27 +68,27 @@ public:
    glm::dvec3 m_shootingPosition{ 6.5536,0,0 };
 
    uint64_t m_nextTimeToShoot{ 0 };
-   uint64_t m_shotIntervalTime{ 6 };
+   uint64_t m_shotIntervalTime{ (uint64_t)PhysicsUnits::ticks(0.05) };
 
-   int64_t m_turretMaxHeat{ 144 * 10 };
+   int64_t m_turretMaxHeat{ PhysicsUnits::ticks(12.) };
    int64_t m_nextTimeCoolDown{ 0 };
-   int64_t m_heatPerBullet{ 20 };
+   int64_t m_heatPerBullet{ PhysicsUnits::ticks(1. / 6.) };
 
    glm::dvec3 m_centerOfMass{};
    uint64_t lastTimeHit{ 0 };
    bool m_doAimAssist{ true };
-   double m_shootingSpeed{ 32.* 2. };
-   double m_thrust{ 0.0131072 };
+   double m_shootingSpeed{ PhysicsUnits::metersPerSecond(7680.) };
+   double m_thrust{ PhysicsUnits::metersPerSecondSquared(188.74368) };
    double m_thrustMultiplier{ 1 };
    double m_projectileDamage{ 0.1 };
    double m_scale{ 3.2768 };
    double m_shootSpread{ 0.01 };
 
-   double m_yawMax{ 0.00004 * 1. };
-   double m_pitchUpMaxBase{ 0.0002 * 1. };
+   double m_yawMax{ PhysicsUnits::radiansPerSecondSquared(0.576) };
+   double m_pitchUpMaxBase{ PhysicsUnits::radiansPerSecondSquared(2.88) };
    double m_pitchUpMax{ m_pitchUpMaxBase };
-   double m_pitchDownMax{ 0.0001 * 1. };
-   double m_rollMax{ 0.0005 * 1.4 };
+   double m_pitchDownMax{ PhysicsUnits::radiansPerSecondSquared(1.44) };
+   double m_rollMax{ PhysicsUnits::radiansPerSecondSquared(10.08) };
 
    // Collision.
    double m_right{};

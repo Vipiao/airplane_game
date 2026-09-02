@@ -13,6 +13,7 @@
 #include "HelperFunctions.h"
 #include "CollisionDetection.h"
 #include "Hash.h"
+#include "PhysicsUnits.h"
 
 GameEngine::GameEngine() {
    m_graphicsEngine.setCallbackObject(this);
@@ -274,11 +275,11 @@ void GameEngine::damageSpaceShip(int partIndex, SpaceShip* ss, double damage) {
       ) };
       double size{ 20. };
       mpe->m_particleEffectInstance->m_scale = { size,size,size };
-      mpe->m_lifeTime = 144 * 3;
+      mpe->m_lifeTime = PhysicsUnits::ticks(3.6);
       mpe->m_particleEffectInstance->m_animationPace /= 3.;
       mpe->m_particleEffectInstance->m_numParticles = 1;
       mpe->m_rigidBody->m_vel = debree->m_rigidBody->m_vel;
-      mpe->airResistanceFactor = 0.01;
+      mpe->airResistanceFactor = PhysicsUnits::blendHalfLife(0.57472969947107067);
       double pitch{ 0.5 + Hash::pcgUnit(m_graphicsEngine.m_frameNum) };
       playSoundAtLocation(debree->m_rigidBody->m_pos, m_explosionSound, pitch, 500, 0.5);
       
@@ -331,14 +332,14 @@ void GameEngine::handleCloseToGroundEffect() {// Close to the ground effect.
                   double ss{ 0.00075 };
                   mpe->m_particleEffectInstance->m_scale = { ss,ss,ss };
                   */
-                  mpe->m_lifeTime = 144;
-                  mpe->m_particleEffectInstance->m_animationPace = 0.5;
+                  mpe->m_lifeTime = PhysicsUnits::ticks(1.2);
+                  mpe->m_particleEffectInstance->m_animationPace = PhysicsUnits::perSecond(60.);
                   double ss{ 1.6384 };
                   mpe->m_particleEffectInstance->m_scale = { ss,ss,ss };
                   mpe->m_particleEffectInstance->m_numParticles = 1;
                   mpe->m_rigidBody->m_vel = rigidBody->m_vel;
-                  mpe->m_rigidBody->m_vel.z = 0.32768;
-                  mpe->airResistanceFactor = 0.01;
+                  mpe->m_rigidBody->m_vel.z = PhysicsUnits::metersPerSecond(39.3216);
+                  mpe->airResistanceFactor = PhysicsUnits::blendHalfLife(0.57472969947107067);
                }
             }
          }
@@ -371,18 +372,18 @@ void GameEngine::handleProjectileGroundCollision() {
                mpe = createMovingParticleEffect(
                   m_plasmaExplosionEffectWater, groundPos
                );
-               mpe->m_lifeTime = 144 * 2;
-               mpe->m_rigidBody->m_vel.z = 1.6384;
-               mpe->m_particleEffectInstance->m_animationPace = 0.25;
+               mpe->m_lifeTime = PhysicsUnits::ticks(2.4);
+               mpe->m_rigidBody->m_vel.z = PhysicsUnits::metersPerSecond(196.608);
+               mpe->m_particleEffectInstance->m_animationPace = PhysicsUnits::perSecond(30.);
                double ss{ 24.576 };
                mpe->m_particleEffectInstance->m_scale = { ss,ss,ss };
             } else {
                mpe = createMovingParticleEffect(
                   m_plasmaExplosionEffect, groundPos
                );
-               mpe->m_lifeTime = 144 / 2;
-               mpe->m_rigidBody->m_vel.z = 1.6384;
-               mpe->m_particleEffectInstance->m_animationPace = 1.;
+               mpe->m_lifeTime = PhysicsUnits::ticks(0.6);
+               mpe->m_rigidBody->m_vel.z = PhysicsUnits::metersPerSecond(196.608);
+               mpe->m_particleEffectInstance->m_animationPace = PhysicsUnits::perSecond(120.);
                double ss{ 24.576 };
                mpe->m_particleEffectInstance->m_scale = { ss,ss,ss };
             }
@@ -492,11 +493,11 @@ void GameEngine::handleProjectileSpaceShipCollision() {
                double scaleFactor{ Hash::pcgUnit(m_graphicsEngine.m_frameNum + ii) };
                size *= scaleFactor * scaleFactor * 0.7 + 0.3;
                mpe->m_particleEffectInstance->m_scale = { size,size,size };
-               mpe->m_lifeTime = 144 / 2 * 3;
+               mpe->m_lifeTime = PhysicsUnits::ticks(1.8);
                mpe->m_particleEffectInstance->m_animationPace /= 3.;
                mpe->m_particleEffectInstance->m_numParticles = 1;
                mpe->m_rigidBody->m_vel = ss->m_rigidBody->m_vel;
-               mpe->airResistanceFactor = 0.02;
+               mpe->airResistanceFactor = PhysicsUnits::blendHalfLife(0.28591348742933892);
                //mpe->m_rigidBody->m_vel.z = 0.00005;
                playSoundAtLocation(mpe->m_rigidBody->m_pos, m_explosionMiniSound, 1.0, 500., 0.1);
 
@@ -587,17 +588,17 @@ void GameEngine::handleSpaceShipGroundCollision() {
                double speedScaleFactor{ 1. };
                if (kk == 1) {
                   mpe->m_particleEffectInstance->m_numParticles = 4;
-                  mpe->m_particleEffectInstance->m_animationPace = 1/30.;
-                  mpe->m_lifeTime = 144 / 2 * 30;
-                  mpe->m_rigidBody->m_vel += normal * 16. * speedScaleFactor;
-                  mpe->airResistanceFactor = 0.1;
+                  mpe->m_particleEffectInstance->m_animationPace = PhysicsUnits::perSecond(4.);
+                  mpe->m_lifeTime = PhysicsUnits::ticks(18.);
+                  mpe->m_rigidBody->m_vel += normal * PhysicsUnits::metersPerSecond(1920.) * speedScaleFactor;
+                  mpe->airResistanceFactor = PhysicsUnits::blendHalfLife(0.054823445658004864);
                   size = 131.072;
                } else {
                   mpe->m_particleEffectInstance->m_numParticles = 1;
-                  mpe->m_particleEffectInstance->m_animationPace = 0.1;
-                  mpe->m_lifeTime = 144 / 2 * 10;
-                  mpe->m_rigidBody->m_vel += normal * 6. * speedScaleFactor;
-                  mpe->airResistanceFactor = 0.1;
+                  mpe->m_particleEffectInstance->m_animationPace = PhysicsUnits::perSecond(12.);
+                  mpe->m_lifeTime = PhysicsUnits::ticks(6.);
+                  mpe->m_rigidBody->m_vel += normal * PhysicsUnits::metersPerSecond(720.) * speedScaleFactor;
+                  mpe->airResistanceFactor = PhysicsUnits::blendHalfLife(0.054823445658004864);
                   size = 65.536;
                }
                mpe->m_particleEffectInstance->m_scale = { size,size,size };
@@ -640,10 +641,10 @@ void GameEngine::handleDebreeGroundCollision() {
                ) };
                double size{ 32.768 };
                mpe->m_particleEffectInstance->m_scale = { size,size,size };
-               mpe->m_lifeTime = 144 / 2 * 4;
+               mpe->m_lifeTime = PhysicsUnits::ticks(2.4);
                mpe->m_particleEffectInstance->m_numParticles = 1;
-               mpe->m_particleEffectInstance->m_animationPace = 0.5;
-               mpe->m_rigidBody->m_vel.z = 1.31072;
+               mpe->m_particleEffectInstance->m_animationPace = PhysicsUnits::perSecond(60.);
+               mpe->m_rigidBody->m_vel.z = PhysicsUnits::metersPerSecond(157.2864);
                double pitch{ Hash::pcgUnit(jj, m_graphicsEngine.m_frameNum)*1. + 1.0 };
                playSoundAtLocation(
                   mpe->m_rigidBody->m_pos, m_explosionLargeSound,
@@ -667,10 +668,10 @@ void GameEngine::handleDebreeGroundCollision() {
                      ) };
                      double size{ 32.768 };
                      mpe->m_particleEffectInstance->m_scale = { size,size,size };
-                     mpe->m_lifeTime = 144 / 2 * 4;
+                     mpe->m_lifeTime = PhysicsUnits::ticks(2.4);
                      mpe->m_particleEffectInstance->m_numParticles = 1;
-                     mpe->m_particleEffectInstance->m_animationPace = 0.5;
-                     mpe->m_rigidBody->m_vel.z = 1.31072;
+                     mpe->m_particleEffectInstance->m_animationPace = PhysicsUnits::perSecond(60.);
+                     mpe->m_rigidBody->m_vel.z = PhysicsUnits::metersPerSecond(157.2864);
                      double pitch{ Hash::pcgUnit(jj, m_graphicsEngine.m_frameNum) * 1. + 1.0 };
                      playSoundAtLocation(
                         mpe->m_rigidBody->m_pos, m_explosionLargeSound,
@@ -726,7 +727,7 @@ void GameEngine::handleGameLogic(uint64_t frameNum) {
                      ) };
          double size{ 32.768 };
          mpe->m_particleEffectInstance->m_scale = { size,size,size };
-         mpe->m_lifeTime = 144 / 2;
+         mpe->m_lifeTime = PhysicsUnits::ticks(0.6);
          mpe->m_particleEffectInstance->m_numParticles = 1;
          mpe->m_rigidBody->m_vel = ss->m_rigidBody->m_vel;
          // Credit last damage given.
@@ -792,9 +793,12 @@ void GameEngine::handlePhysics(uint64_t /*frameNum*/) {
       rigidBody->m_vel += forward * thrust;
 
       // Lift.
+      constexpr double k_liftSpeedScale{ 3794.7331922020555 };
       double liftFactor{ 2.0 };
-      double forwardSpeed{ glm::dot(rigidBody->m_vel, forward) };
-      double lift{ liftFactor * forwardSpeed * forwardSpeed * 1.e-9 };
+      double forwardSpeed{
+         PhysicsUnits::toMetersPerSecond(glm::dot(rigidBody->m_vel, forward)) / k_liftSpeedScale
+      };
+      double lift{ liftFactor * forwardSpeed * forwardSpeed };
       //m_spaceShip->m_rigidBody->m_vel += up * lift;
       //torque += glm::dvec3{0, 0, 1} * lift * 20. * right.z;
 
@@ -803,13 +807,13 @@ void GameEngine::handlePhysics(uint64_t /*frameNum*/) {
       double resistanceEffectOnAirResistance{0.5};
       double airResistanceFactor{ glm::mix(
          0.05,
-         glm::min(lift * 1.e6, 1.), resistanceEffectOnAirResistance
+         glm::min(lift, 1.), resistanceEffectOnAirResistance
       ) };
       //airResistanceFactor = 0.;
       glm::dvec3 airResistance{ // Local coordiante system of space ship.
-         -glm::dot(rigidBody->m_vel, right) * 0.2, // Sideways.
-         -glm::dot(rigidBody->m_vel, forward) * 0.02, // Forward.
-         -glm::dot(rigidBody->m_vel, up) * 0.5, // Up.
+         -glm::dot(rigidBody->m_vel, right) * PhysicsUnits::perSecond(24.), // Sideways.
+         -glm::dot(rigidBody->m_vel, forward) * PhysicsUnits::perSecond(2.4), // Forward.
+         -glm::dot(rigidBody->m_vel, up) * PhysicsUnits::perSecond(60.), // Up.
       };
       airResistance *= glm::pow(rWingHealth * lWingHealth, 0.5);
       // Make global coordinate system.
@@ -820,19 +824,20 @@ void GameEngine::handlePhysics(uint64_t /*frameNum*/) {
       //double aliveFriction{ 0.98 };
       //double deadFriction{ 0.999 };
       //rigidBody->m_rotationVel *= glm::mix(deadFriction, aliveFriction, rWingHealth * lWingHealth);
-      rigidBody->m_rotationVel *= 0.98;
+      rigidBody->m_rotationVel *= PhysicsUnits::halfLife(0.2859134874293379);
       //
-      torque += glm::dvec3{ 0,0,01 } * lift * right.z * 64.;
+      double liftTurnFactor{ PhysicsUnits::radiansPerSecondSquared(0.9216) };
+      torque += glm::dvec3{ 0,0,01 } * lift * right.z * liftTurnFactor;
       // Dihedral.
-      torque += forward * lift * 64. * right.z;
+      torque += forward * lift * liftTurnFactor * right.z;
 
       // Counter torque.
       //torque += -forward * glm::dot(rigidBody->getAngularVel(), forward) * 0.01;
 
       // Missing wings.
       double wingFactorAirResistance{ 0.00122 };
-      constexpr double wingFactorLift{ 9000. };
-      constexpr double wingFactorTurnDown{ 800. };
+      double wingFactorLift{ PhysicsUnits::radiansPerSecondSquared(129.6) };
+      double wingFactorTurnDown{ PhysicsUnits::radiansPerSecondSquared(11.52) };
       double effectFactor{ 0. };
       if (rWingHealth < 1.) {
          effectFactor += glm::pow(1. - rWingHealth, 2.);
@@ -927,7 +932,7 @@ void GameEngine::handlePhysics(uint64_t /*frameNum*/) {
       debree->m_rigidBody->m_vel -= 0.0005 * debree->m_rigidBody->m_vel * glm::length(debree->m_rigidBody->m_vel);
       glm::dvec3 randomAxis{ Hash::pcgUnit3(m_graphicsEngine.m_frameNum + ii) - 0.5 };
       debree->m_rigidBody->m_rotationAxis = HelperFunctions::rotateAroundVector(
-         debree->m_rigidBody->m_rotationAxis, randomAxis, 0.01
+         debree->m_rigidBody->m_rotationAxis, randomAxis, PhysicsUnits::radiansPerSecond(1.2)
       );
    }
 

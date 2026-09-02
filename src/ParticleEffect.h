@@ -4,6 +4,7 @@
 
 
 #include "ShaderProgram.h"
+#include "PhysicsUnits.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -43,7 +44,7 @@ public:
    glm::dquat m_ori{ 1,0,0,0 };
    ShaderProgram* m_shaderProgram{ nullptr };
    std::vector<Texture> m_textures{};
-   double m_animationPace{1.};
+   double m_animationPace{ PhysicsUnits::perSecond(120.) };
    int m_modelLoc{};
    int m_viewLoc{};
    int m_projLoc{};
