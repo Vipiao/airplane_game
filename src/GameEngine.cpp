@@ -767,6 +767,7 @@ void GameEngine::handlePhysics(uint64_t /*frameNum*/) {
       // Torque.
       glm::dvec3 torque{ 0,0,0 };
       // Thrust.
+      spaceShip->updateCapacitor();
       double thrust{ spaceShip->m_thrust * spaceShip->m_thrustMultiplier };
       //if (m_keyLShiftDown) {
       //   thrust *= 2.;
@@ -979,10 +980,10 @@ void GameEngine::handleSoundEffects() {
          continue;
       }
       SpaceShip* sp{ m_spaceShips[ii] };
-      double speedSqr{ glm::length2(sp->m_rigidBody->m_vel) };
-      double pitch{ 3.0 + speedSqr * 0.001 };
+      double pitch{ 4.0 };
       pitch *= Hash::pcgUnit(m_graphicsEngine.m_frameNum + ii) * 0.5 + 0.1;
-      double gain{ 4.0 * sp->m_thrustMultiplier * sp->m_thrustMultiplier };
+      pitch *= sp->getEnginePitchScale();
+      double gain{ 12.0 * sp->m_thrustMultiplier * sp->m_thrustMultiplier };
       playSoundAtLocation(
          sp->m_rigidBody->m_pos, m_rocketSound, pitch, gain, 0.5
       );
@@ -1084,7 +1085,7 @@ SpaceShip* GameEngine::createSpaceShip(glm::dvec3 position) {
    //
    spaceShip->m_plasmaL = m_graphicsEngine.createTransparentMesh(m_spaceShipEnginePlasmaModel);
    spaceShip->m_plasmaR = m_graphicsEngine.createTransparentMesh(m_spaceShipEnginePlasmaModel);
-   double ss{ 4.9152 };
+   double ss{ spaceShip->m_plasmaScale };
    spaceShip->m_plasmaR->m_scale = { ss,ss,ss };
    spaceShip->m_plasmaL->m_scale = { ss,ss,ss };
    spaceShip->m_plasmaR->m_doCulling = false;

@@ -71,10 +71,26 @@ void SpaceShip::updateMeshPositions(uint64_t frameNum, glm::dvec3 camPos, double
    m_plasmaL->m_position = m_rigidBody->m_pos + m_rigidBody->m_ori * offset;
    glm::dquat orientation{ m_rigidBody->m_ori };
    double random{ Hash::pcgUnit(frameNum) };
+   // The engines misfire as the capacitor drains: the on-time of a fixed pulse falls from
+   // the whole period to m_engineMinDuty of it, and the off part burns at m_engineOffPower.
+   double duty{ getEngineDuty() };
+   uint64_t phase{
+      (frameNum + Hash::pcg((uint64_t)m_id)) % (uint64_t)m_enginePulsePeriod
+   };
+   bool engineOn{ (double)phase < duty * (double)m_enginePulsePeriod };
+   double enginePower{ getEnginePower() };
+   double pulse{ engineOn ? 1. : m_engineOffPower };
+   // The glow rides the charge level but only takes m_engineGlowPulseDepth of the pulse,
+   // so it stays readable as a gauge instead of collapsing on every misfire.
+   double glow{
+      m_plasmaScale * enginePower * glm::mix(1., pulse, m_engineGlowPulseDepth)
+   };
+   double glowX{ m_plasmaR->m_scale.x < 0. ? -glow : glow };
    if (random > 0.5) {
-      m_plasmaR->m_scale.x = -m_plasmaR->m_scale.x;
-      m_plasmaL->m_scale.x = -m_plasmaL->m_scale.x;
+      glowX = -glowX;
    }
+   m_plasmaR->m_scale = { glowX, glow, glow };
+   m_plasmaL->m_scale = { glowX, glow, glow };
    orientation = orientation * glm::angleAxis(random * 99., glm::dvec3{ 0,1,0 });
    m_plasmaL->m_orientation = orientation;
    m_plasmaR->m_orientation = orientation;
@@ -133,7 +149,7 @@ void SpaceShip::updateMeshPositions(uint64_t frameNum, glm::dvec3 camPos, double
    double current{ m_plasmaEffectR->m_scale.y };
    double target{
       m_plasmaEffectL->m_scale.x *
-      glm::pow(glm::abs(m_thrustMultiplier), 2.5)
+      glm::pow(glm::abs(m_thrustMultiplier), 2.5) * enginePower * pulse
    };
    double newL{ glm::mix(current, target, PhysicsUnits::blendHalfLife(0.033129419504020347)) };
    m_plasmaEffectR->m_scale.y = newL;
@@ -175,4 +191,32 @@ void SpaceShip::updateCollisionBoxes() {
    m_back = m_rigidBody->m_pos.y - m_size;
    m_top = m_rigidBody->m_pos.z + m_size;
    m_bottom = m_rigidBody->m_pos.z - m_size;
+}
+
+void SpaceShip::updateCapacitor() {
+   if (m_capacitor <= 0. && m_thrustMultiplier > m_sustainThrust) {
+      m_thrustMultiplier = m_sustainThrust;
+   }
+   // Charge measured in seconds of full boost, so full thrust spends it at one second
+   // per second and anything below m_sustainThrust refills it.
+   double rate{
+      (m_sustainThrust - glm::abs(m_thrustMultiplier)) / (m_boostThrust - m_sustainThrust)
+   };
+   if (rate > 0.) {
+      rate *= m_capacitorChargeScale;
+   }
+   m_capacitor += PhysicsUnits::perSecond(rate);
+   m_capacitor = glm::clamp(m_capacitor, 0., m_capacitorMax);
+}
+
+double SpaceShip::getEnginePower() {
+   return glm::mix(m_engineMinPower, 1., m_capacitor / m_capacitorMax);
+}
+
+double SpaceShip::getEngineDuty() {
+   return glm::mix(m_engineMinDuty, 1., m_capacitor / m_capacitorMax);
+}
+
+double SpaceShip::getEnginePitchScale() {
+   return glm::mix(m_engineMinPitch, 1., m_capacitor / m_capacitorMax);
 }

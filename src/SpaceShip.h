@@ -50,6 +50,10 @@ public:
    void nextShootingPosition();
    void updateCenterOfMass();
    void updateCollisionBoxes();
+   void updateCapacitor();
+   double getEnginePower();
+   double getEngineDuty();
+   double getEnginePitchScale();
 
    int m_id{};
    int m_lastDamageId{-1};
@@ -80,6 +84,18 @@ public:
    double m_shootingSpeed{ PhysicsUnits::metersPerSecond(7680.) };
    double m_thrust{ PhysicsUnits::metersPerSecondSquared(188.74368) };
    double m_thrustMultiplier{ 1 };
+   double m_boostThrust{ 2. };
+   double m_sustainThrust{ 1.3 };
+   double m_capacitorMax{ 10. }; // Seconds of full boost.
+   double m_capacitor{ m_capacitorMax };
+   double m_capacitorChargeScale{ 2.2 };
+   double m_plasmaScale{ 4.9152 };
+   int64_t m_enginePulsePeriod{ PhysicsUnits::ticks(0.1) };
+   double m_engineMinDuty{ 0.5 };
+   double m_engineMinPower{ 0.5 };
+   double m_engineOffPower{ 0.35 };
+   double m_engineGlowPulseDepth{ 0.4 };
+   double m_engineMinPitch{ 0.35 };
    double m_projectileDamage{ 0.1 };
    double m_scale{ 3.2768 };
    double m_shootSpread{ 0.01 };
