@@ -931,6 +931,10 @@ void GameLogic::handleInput(uint64_t /*frameNum*/) {
    if (m_keyBoardHandler->m_t.justPressed())
       graphicsEngine->setTriangleRenderMode(!graphicsEngine->getTriangleRenderMode());
 
+   // Toggle fullscreen with F11 key
+   if (m_keyBoardHandler->m_f11.justPressed())
+      graphicsEngine->toggleFullscreen();
+
    // Refresh shaders.
    if (m_keyBoardHandler->m_l.justPressed())
       m_planet->refreshShaders();

@@ -40,6 +40,16 @@ protected:
    std::vector<ParticleEffectInstance*> m_particleEffectInstances{};
 
    glm::dvec3 m_camPosPrev{};
+
+   // Windowed geometry captured by toggleFullscreen() when entering
+   // fullscreen; only valid while fullscreen.
+   int m_windowedPosX{};
+   int m_windowedPosY{};
+   int m_windowedWidth{};
+   int m_windowedHeight{};
+   int m_swapInterval{ 1 };
+
+   GLFWmonitor* getCurrentMonitor();
 public:
    GraphicsEngine();
    ~GraphicsEngine();
@@ -47,6 +57,7 @@ public:
    GraphicsEngine& operator= (const GraphicsEngine&) = delete;
 
    void setSwapInterval(int swapInterval);
+   void toggleFullscreen();
    int getRefreshRate();
    void setCallbackObject(GraphicsEngineCallback* graphicsEngineCallback);
    glm::dmat4 createModel(glm::dvec3 scale, glm::dquat orientation, glm::dvec3 position);

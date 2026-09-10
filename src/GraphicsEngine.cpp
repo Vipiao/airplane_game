@@ -68,9 +68,9 @@ GraphicsEngine::GraphicsEngine() {
 
    // Clobal configuration.
 #ifdef V_SYNC_OFF
-   glfwSwapInterval(0);
+   setSwapInterval(0);
 #else
-   glfwSwapInterval(1);
+   setSwapInterval(1);
 #endif
 
    int refreshRate{ getRefreshRate() };
@@ -120,7 +120,69 @@ GraphicsEngine::~GraphicsEngine() {
 }
 
 void GraphicsEngine::setSwapInterval(int swapInterval) {
+   m_swapInterval = swapInterval;
    glfwSwapInterval(swapInterval);
+}
+
+GLFWmonitor* GraphicsEngine::getCurrentMonitor() {
+   // When fullscreen, the window's monitor is authoritative.
+   if (GLFWmonitor* fullscreenMonitor{ glfwGetWindowMonitor(m_window) }) {
+      return fullscreenMonitor;
+   }
+
+   // Wayland does not expose window positions, so the center-based pick
+   // below is impossible; fall back to the primary monitor.
+   if (glfwGetPlatform() == GLFW_PLATFORM_WAYLAND) {
+      return glfwGetPrimaryMonitor();
+   }
+
+   int windowX, windowY, windowWidth, windowHeight;
+   glfwGetWindowPos(m_window, &windowX, &windowY);
+   glfwGetWindowSize(m_window, &windowWidth, &windowHeight);
+
+   int monitorCount;
+   GLFWmonitor** monitors{ glfwGetMonitors(&monitorCount) };
+   GLFWmonitor* windowMonitor{ glfwGetPrimaryMonitor() };
+
+   int windowCenterX{ windowX + windowWidth / 2 };
+   int windowCenterY{ windowY + windowHeight / 2 };
+
+   for (int ii = 0; ii < monitorCount; ii++) {
+      int monitorX, monitorY, monitorWidth, monitorHeight;
+      glfwGetMonitorWorkarea(monitors[ii], &monitorX, &monitorY, &monitorWidth, &monitorHeight);
+
+      if (windowCenterX >= monitorX && windowCenterX < (monitorX + monitorWidth) &&
+         windowCenterY >= monitorY && windowCenterY < (monitorY + monitorHeight)) {
+         windowMonitor = monitors[ii];
+         break;
+      }
+   }
+
+   return windowMonitor;
+}
+
+void GraphicsEngine::toggleFullscreen() {
+   if (glfwGetWindowMonitor(m_window)) {
+      // Currently fullscreen: restore the windowed position and size.
+      glfwSetWindowMonitor(m_window, nullptr, m_windowedPosX, m_windowedPosY,
+         m_windowedWidth, m_windowedHeight, 0);
+   } else {
+      m_windowedPosX = 0;
+      m_windowedPosY = 0;
+      if (glfwGetPlatform() != GLFW_PLATFORM_WAYLAND) { // Wayland has no window positions.
+         glfwGetWindowPos(m_window, &m_windowedPosX, &m_windowedPosY);
+      }
+      glfwGetWindowSize(m_window, &m_windowedWidth, &m_windowedHeight);
+      GLFWmonitor* monitor{ getCurrentMonitor() };
+      const GLFWvidmode* mode{ glfwGetVideoMode(monitor) };
+      if (mode == nullptr) {
+         std::cout << "Warning: Failed to get video mode for fullscreen toggle." << std::endl;
+         return;
+      }
+      glfwSetWindowMonitor(m_window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+   }
+   // The swap interval is not preserved across monitor changes on all platforms.
+   setSwapInterval(m_swapInterval);
 }
 
 int GraphicsEngine::getRefreshRate() {

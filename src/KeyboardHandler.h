@@ -71,5 +71,7 @@ public:
    Button m_left{ GLFW_KEY_LEFT };
    Button m_up{ GLFW_KEY_UP };
    Button m_down{ GLFW_KEY_DOWN };
+
+   Button m_f11{ GLFW_KEY_F11 };
 };
 

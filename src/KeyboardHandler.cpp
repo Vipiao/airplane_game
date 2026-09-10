@@ -45,6 +45,8 @@ KeyboardHandler::KeyboardHandler(GLFWwindow* window) {
    m_buttons.push_back(&m_left);
    m_buttons.push_back(&m_up);
    m_buttons.push_back(&m_down);
+
+   m_buttons.push_back(&m_f11);
 }
 
 void KeyboardHandler::update() {
