@@ -1,10 +1,13 @@
 # AirplaneGame
 
-A flight/dogfight game over a procedurally generated planet, written from
-scratch in C++20 on modern OpenGL. The terrain is raised on the GPU by a
-tessellation pipeline whose displacement function is injected into the shader
-source at load time, so the same noise definition drives both the rendered
-surface and the CPU-side collision queries.
+**Video: [youtu.be/36K7TTiWD9o](https://youtu.be/36K7TTiWD9o)**
+
+This is a 3D airplane game. Created without AI. Terrain is procedurally
+generated. Watch out, 100 NPCs will try to kill you.
+
+The terrain is raised on the GPU by a tessellation pipeline whose displacement
+function is injected into the shader source at load time, so the same noise
+definition drives both the rendered surface and the CPU-side collision queries.
 
 ![In flight](media/screen_shots/03_engine_plasma.jpg)
 
@@ -42,7 +45,7 @@ cmake --build --preset dev-release
 cd bin && ./AirplaneGame
 ```
 
-`CMakeUserPresets.json` is gitignored — it is personal to your machine. A
+`CMakeUserPresets.json` is gitignored. It is personal to your machine. A
 minimal one:
 
 ```json
